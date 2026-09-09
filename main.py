@@ -3,7 +3,6 @@ import json
 import time
 import requests
 from google import genai
-from google.genai.errors import APIError
 from html2image import Html2Image
 
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
@@ -13,7 +12,7 @@ CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 client = genai.Client(api_key=GEMINI_KEY)
 
 prompt = """
-צור 5 ביטויים בצרפתית ברמת C1. החזר את התשובה כ-JSON נקי בלבד במבנה הבא:
+צור 5 ביטויים בצרפתית ברמת C1. החזר את התשובה כ-JSON במבנה המדויק הבא:
 [
   {
     "expression": "הביטוי בצרפתית",
@@ -32,22 +31,34 @@ prompt = """
 """
 
 response_text = None
+
 for attempt in range(3):
     try:
         res = client.models.generate_content(
             model="gemini-3.6-flash",
             contents=prompt,
+            config={
+                "response_mime_type": "application/json"
+            }
         )
-        response_text = res.text.strip()
-        if response_text.startswith("```json"):
-            response_text = response_text[7:-3].strip()
-        if response_text:
+        if res.text:
+            response_text = res.text.strip()
             break
-    except APIError as e:
+    except Exception as e:
+        print(f"Attempt {attempt + 1} failed with error: {e}")
         time.sleep(5)
 
 if not response_text:
-    raise Exception("Failed to generate content.")
+    raise Exception("Failed to generate content from Gemini API.")
+
+# ניקוי שאריות Markdown במידת הצורך
+if response_text.startswith("```"):
+    lines = response_text.splitlines()
+    if lines[0].startswith("```"):
+        lines = lines[1:]
+    if lines and lines[-1].startswith("```"):
+        lines = lines[:-1]
+    response_text = "\n".join(lines).strip()
 
 data = json.loads(response_text)
 
@@ -159,4 +170,5 @@ hti.screenshot(html_str=full_html, save_as='card.png', size=(810, 1400))
 # שליחה לטלגרם
 url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_TOKEN}/sendPhoto"
 with open("card.png", "rb") as img_file:
-    requests.post(url, data={"chat_id": CHAT_ID}, files={"photo": img_file})
+    res = requests.post(url, data={"chat_id": CHAT_ID}, files={"photo": img_file})
+    print(f"Telegram response status: {res.status_code}")
