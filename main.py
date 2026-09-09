@@ -7,7 +7,7 @@ GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 
-# אתחול הלקוח עם ה-API Key
+# אתחול הלקוח
 client = genai.Client(api_key=GEMINI_KEY)
 
 # פרומפט ליצירת התוכן
