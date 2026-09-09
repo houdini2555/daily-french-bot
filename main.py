@@ -44,10 +44,22 @@ prompt = """
 # רשימת מודלים: משתמשים רק ב-gemini-3.6-flash
 model = "gemini-3.6-flash"
 
-# Retry/backoff configuration
-MAX_ATTEMPTS_PER_MODEL = 5
-BASE_BACKOFF_SECONDS = 2
-MAX_BACKOFF_SECONDS = 60
+# Retry/backoff configuration - 10 attempts with progressive backoff
+MAX_ATTEMPTS_PER_MODEL = 10
+
+# Backoff schedule in seconds: [attempt1, attempt2, ..., attempt10]
+BACKOFF_SCHEDULE = [
+    0,          # attempt 1: no wait
+    10,         # attempt 2: 10s
+    30,         # attempt 3: 30s
+    60,         # attempt 4: 60s (1 min)
+    180,        # attempt 5: 180s (3 min)
+    360,        # attempt 6: 360s (6 min) - increase 6
+    540,        # attempt 7: 540s (9 min = 3 more minutes)
+    900,        # attempt 8: 900s (15 min) - 5 minutes more
+    1500,       # attempt 9: 1500s (25 min) - 15 minutes more
+    2700,       # attempt 10: 2700s (45 min) - wait but continue for 35 minutes more
+]
 
 
 def _is_retryable_error(err_text: str) -> bool:
@@ -68,13 +80,13 @@ def _is_retryable_error(err_text: str) -> bool:
 
 
 def generate_with_retries(model: str, prompt: str) -> str | None:
-    """Try to generate content from the given model with retries and jitter.
+    """Try to generate content from the given model with retries and progressive backoff.
 
     Returns the response text on success, or None if all attempts fail or if the error is non-retryable.
     """
     for attempt in range(1, MAX_ATTEMPTS_PER_MODEL + 1):
         try:
-            print(f"[{model}] Attempt {attempt}...")
+            print(f"[{model}] Attempt {attempt}/{MAX_ATTEMPTS_PER_MODEL}...")
             res = client.models.generate_content(
                 model=model,
                 contents=prompt,
@@ -100,13 +112,14 @@ def generate_with_retries(model: str, prompt: str) -> str | None:
                 print(f"[{model}] Non-retryable error detected. Skipping remaining attempts for this model.")
                 return None
 
-            # Otherwise compute exponential backoff with jitter
-            backoff_base = min(BASE_BACKOFF_SECONDS * (2 ** (attempt - 1)), MAX_BACKOFF_SECONDS)
-            jitter = random.uniform(0, backoff_base * 0.5)
-            wait_time = backoff_base + jitter
-            wait_time = min(wait_time, MAX_BACKOFF_SECONDS)
-            print(f"[{model}] Retryable error. Waiting {wait_time:.1f}s before next attempt...")
-            time.sleep(wait_time)
+            # Otherwise use the backoff schedule
+            if attempt < MAX_ATTEMPTS_PER_MODEL:
+                wait_time = BACKOFF_SCHEDULE[attempt]
+                print(f"[{model}] Retryable error. Waiting {wait_time}s ({wait_time//60}m {wait_time%60}s) before next attempt...")
+                time.sleep(wait_time)
+            else:
+                print(f"[{model}] Attempt {attempt} failed. No more retries available.")
+
     print(f"[{model}] All attempts exhausted.")
     return None
 
