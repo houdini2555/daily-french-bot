@@ -9,6 +9,14 @@ GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 
+# Validate environment variables
+if not TELEGRAM_TOKEN:
+    raise ValueError("TELEGRAM_BOT_TOKEN environment variable is not set")
+if not CHAT_ID:
+    raise ValueError("TELEGRAM_CHAT_ID environment variable is not set")
+if not GEMINI_KEY:
+    raise ValueError("GEMINI_API_KEY environment variable is not set")
+
 client = genai.Client(api_key=GEMINI_KEY)
 
 prompt = """
@@ -176,6 +184,7 @@ hti.screenshot(html_str=full_html, save_as='card.png', size=(810, 1400))
 
 # --- שליחה לטלגרם ---
 url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
+print(f"Sending to Telegram URL: https://api.telegram.org/bot****/sendPhoto")
 with open("card.png", "rb") as img_file:
     res = requests.post(url, data={"chat_id": CHAT_ID}, files={"photo": img_file})
     print(f"Telegram response status: {res.status_code}")
