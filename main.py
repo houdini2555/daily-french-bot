@@ -41,8 +41,8 @@ prompt = """
 ]
 """
 
-# רשימת מודלים עדיפות: אם הראשון עמוס, עוברים הבא
-models_to_try = ["gemini-3.6-flash", "gemini-3.6", "gemini-3.1-pro-preview"]
+# רשימת מודלים: משתמשים רק ב-gemini-3.6-flash
+model = "gemini-3.6-flash"
 
 # Retry/backoff configuration
 MAX_ATTEMPTS_PER_MODEL = 5
@@ -112,19 +112,17 @@ def generate_with_retries(model: str, prompt: str) -> str | None:
 
 
 response_text = None
-for model in models_to_try:
-    print(f"Trying model: {model}")
-    result = generate_with_retries(model, prompt)
-    if result:
-        response_text = result
-        print(f"Successfully got response from {model}")
-        break
-    else:
-        print(f"No usable response from {model}, moving to next model.")
+print(f"Trying model: {model}")
+result = generate_with_retries(model, prompt)
+if result:
+    response_text = result
+    print(f"Successfully got response from {model}")
+else:
+    print(f"No usable response from {model}.")
 
 if not response_text:
     # Send a Telegram notification about failure and exit with non-zero code so CI still fails but with better context
-    failure_message = "Daily French Bot: failed to generate content from all Gemini models. See logs for details."
+    failure_message = "Daily French Bot: failed to generate content from Gemini model. See logs for details."
     try:
         tg_url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
         requests.post(tg_url, data={"chat_id": CHAT_ID, "text": failure_message})
@@ -132,7 +130,7 @@ if not response_text:
     except Exception as e:
         print(f"Failed to send Telegram failure notification: {e}")
     # Exit with a clear message
-    print("Exiting: could not obtain model output from any configured Gemini model.")
+    print("Exiting: could not obtain model output from Gemini model.")
     sys.exit(1)
 
 # If the model returned backticks-wrapped JSON, strip them
