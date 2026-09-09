@@ -2,7 +2,7 @@ import os
 import time
 import requests
 from google import genai
-from google.genai.errors import ServerError
+from google.genai.errors import APIError
 from PIL import Image, ImageDraw, ImageFont
 
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
@@ -22,25 +22,27 @@ prompt = """
 עצב את התשובה בצורה קריאה, קצרה ונקייה ללא עיצוב מורכב מדי.
 """
 
-models_to_try = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-flash"]
 response_text = None
 
-for model_name in models_to_try:
-    for attempt in range(3):
-        try:
-            res = client.models.generate_content(
-                model=model_name,
-                contents=prompt,
-            )
-            response_text = res.text
+# ניסיונות חוזרים עבור המודל הפעיל gemini-3.6-flash
+for attempt in range(3):
+    try:
+        res = client.models.generate_content(
+            model="gemini-3.6-flash",
+            contents=prompt,
+        )
+        response_text = res.text
+        if response_text:
             break
-        except ServerError:
-            time.sleep(3)
-    if response_text:
-        break
+    except APIError as e:
+        print(f"Attempt {attempt + 1} failed with API error: {e}")
+        time.sleep(5)
+    except Exception as e:
+        print(f"Attempt {attempt + 1} failed: {e}")
+        time.sleep(5)
 
 if not response_text:
-    raise Exception("All Gemini models were unavailable.")
+    raise Exception("Failed to generate content from Gemini API.")
 
 # --- יצירת תמונה ---
 img_width = 1080
