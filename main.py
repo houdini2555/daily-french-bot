@@ -22,9 +22,9 @@ prompt = """
 עצב את התשובה בצורה קריאה ונקייה המתאימה להודעת טלגרם (השתמש ב-Bold ובאייקונים).
 """
 
-# קריאה למודל היציב gemini-1.5-flash
+# קריאה למודל 2.0 Flash
 response = client.models.generate_content(
-    model="gemini-1.5-flash",
+    model="gemini-2.0-flash",
     contents=prompt,
 )
 
