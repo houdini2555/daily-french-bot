@@ -1,6 +1,9 @@
 import os
 import json
 import time
+import random
+import sys
+import traceback
 import requests
 from google import genai
 from html2image import Html2Image
@@ -39,13 +42,39 @@ prompt = """
 """
 
 # רשימת מודלים עדיפות: אם הראשון עמוס, עוברים הבא
-models_to_try = ["gemini-3.6-flash", "gemini-2.5-flash", "gemini-2.5-pro"]
-response_text = None
+models_to_try = ["gemini-3.6-flash", "gemini-3.6", "gemini-3.1-pro-preview"]
 
-for model in models_to_try:
-    print(f"Trying model: {model}")
-    for attempt in range(3):
+# Retry/backoff configuration
+MAX_ATTEMPTS_PER_MODEL = 5
+BASE_BACKOFF_SECONDS = 2
+MAX_BACKOFF_SECONDS = 60
+
+
+def _is_retryable_error(err_text: str) -> bool:
+    """Return True if the error text suggests a transient/retryable problem."""
+    if not err_text:
+        return False
+    t = err_text.lower()
+    # Non-retryable: not found / removed models
+    if "404" in t or "not_found" in t or "no longer available" in t or "not found" in t:
+        return False
+    # Retryable: server errors, rate limit, unavailable, timeout
+    if "503" in t or "unavailable" in t or "rate" in t or "rate limit" in t or "429" in t or "timeout" in t or "temporar" in t:
+        return True
+    # Fallback: if it contains '5'xx but not 404
+    if "5" in t:
+        return True
+    return False
+
+
+def generate_with_retries(model: str, prompt: str) -> str | None:
+    """Try to generate content from the given model with retries and jitter.
+
+    Returns the response text on success, or None if all attempts fail or if the error is non-retryable.
+    """
+    for attempt in range(1, MAX_ATTEMPTS_PER_MODEL + 1):
         try:
+            print(f"[{model}] Attempt {attempt}...")
             res = client.models.generate_content(
                 model=model,
                 contents=prompt,
@@ -53,20 +82,60 @@ for model in models_to_try:
                     "response_mime_type": "application/json"
                 }
             )
-            if res.text:
-                response_text = res.text.strip()
-                break
+            # Some SDKs provide .text, some .response; follow existing behavior
+            text = getattr(res, "text", None) or getattr(res, "response", None) or None
+            if text:
+                return text.strip()
+            # If no text but no exception, treat as failure and retry
+            err_msg = f"empty response from model {model}"
+            print(f"[{model}] {err_msg}")
+            # continue to retry
         except Exception as e:
-            wait_time = (attempt + 1) * 10
-            print(f"Attempt {attempt + 1} for {model} failed: {e}. Retrying in {wait_time}s...")
+            # Try to extract useful info from the exception
+            err_text = "".join(traceback.format_exception_only(type(e), e))
+            print(f"[{model}] Error on attempt {attempt}: {err_text}")
+
+            # If the error is non-retryable (e.g., 404 NOT_FOUND for a model), stop trying this model
+            if not _is_retryable_error(err_text):
+                print(f"[{model}] Non-retryable error detected. Skipping remaining attempts for this model.")
+                return None
+
+            # Otherwise compute exponential backoff with jitter
+            backoff_base = min(BASE_BACKOFF_SECONDS * (2 ** (attempt - 1)), MAX_BACKOFF_SECONDS)
+            jitter = random.uniform(0, backoff_base * 0.5)
+            wait_time = backoff_base + jitter
+            wait_time = min(wait_time, MAX_BACKOFF_SECONDS)
+            print(f"[{model}] Retryable error. Waiting {wait_time:.1f}s before next attempt...")
             time.sleep(wait_time)
-            
-    if response_text:
+    print(f"[{model}] All attempts exhausted.")
+    return None
+
+
+response_text = None
+for model in models_to_try:
+    print(f"Trying model: {model}")
+    result = generate_with_retries(model, prompt)
+    if result:
+        response_text = result
+        print(f"Successfully got response from {model}")
         break
+    else:
+        print(f"No usable response from {model}, moving to next model.")
 
 if not response_text:
-    raise Exception("Failed to generate content from all Gemini models due to high demand.")
+    # Send a Telegram notification about failure and exit with non-zero code so CI still fails but with better context
+    failure_message = "Daily French Bot: failed to generate content from all Gemini models. See logs for details."
+    try:
+        tg_url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+        requests.post(tg_url, data={"chat_id": CHAT_ID, "text": failure_message})
+        print("Sent failure notification to Telegram.")
+    except Exception as e:
+        print(f"Failed to send Telegram failure notification: {e}")
+    # Exit with a clear message
+    print("Exiting: could not obtain model output from any configured Gemini model.")
+    sys.exit(1)
 
+# If the model returned backticks-wrapped JSON, strip them
 if response_text.startswith("```"):
     lines = response_text.splitlines()
     if lines[0].startswith("```"):
@@ -75,7 +144,21 @@ if response_text.startswith("```"):
         lines = lines[:-1]
     response_text = "\n".join(lines).strip()
 
-data = json.loads(response_text)
+# Try parsing JSON and handle parse errors
+try:
+    data = json.loads(response_text)
+except Exception as e:
+    print(f"Failed to parse JSON from model response: {e}")
+    # send response_text to Telegram for debugging
+    debug_msg = "Daily French Bot: Model returned invalid JSON. Dumping response (truncated):\n" + (response_text[:1900] + "..." if len(response_text) > 1900 else response_text)
+    try:
+        tg_url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+        requests.post(tg_url, data={"chat_id": CHAT_ID, "text": debug_msg})
+        print("Sent debug response to Telegram.")
+    except Exception as e2:
+        print(f"Failed to send debug response to Telegram: {e2}")
+    # fail loudly for CI
+    raise
 
 # --- בניית HTML מעוצב ---
 cards_html = ""
@@ -87,7 +170,7 @@ for item in data:
             <span class="expression">{item['expression']}</span>
             <span class="ipa">{item['ipa']}</span>
         </div>
-        <div class="example">"{item['example']}"</div>
+        <div class="example">\"{item['example']}\"</div>
         <div class="translations">{trans_html}</div>
     </div>
     """
