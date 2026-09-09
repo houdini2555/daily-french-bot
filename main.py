@@ -51,7 +51,6 @@ for attempt in range(3):
 if not response_text:
     raise Exception("Failed to generate content from Gemini API.")
 
-# ניקוי שאריות Markdown במידת הצורך
 if response_text.startswith("```"):
     lines = response_text.splitlines()
     if lines[0].startswith("```"):
@@ -167,7 +166,7 @@ hti = Html2Image(custom_flags=['--no-sandbox', '--disable-gpu'])
 hti.output_path = '.'
 hti.screenshot(html_str=full_html, save_as='card.png', size=(810, 1400))
 
-# שליחה לטלגרם
+# --- שליחה תקינה לטלגרם ---
 url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_TOKEN}/sendPhoto"
 with open("card.png", "rb") as img_file:
     res = requests.post(url, data={"chat_id": CHAT_ID}, files={"photo": img_file})
