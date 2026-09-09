@@ -2,9 +2,8 @@ name: Daily French C1 Bot
 
 on:
   schedule:
-    # רץ בכל יום בשעה 06:00 UTC (ניתן לכוונן לפי האזור הזמני שלך)
     - cron: '0 6 * * *'
-  workflow_dispatch: # מאפשר הרצה ידנית בלחיצת כפתור לבדיקה
+  workflow_dispatch:
 
 jobs:
   build:
