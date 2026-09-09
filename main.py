@@ -30,26 +30,34 @@ prompt = """
 ]
 """
 
+# רשימת מודלים עדיפות: אם הראשון עמוס, עוברים הבא
+models_to_try = ["gemini-3.6-flash", "gemini-2.5-flash", "gemini-2.5-pro"]
 response_text = None
 
-for attempt in range(3):
-    try:
-        res = client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=prompt,
-            config={
-                "response_mime_type": "application/json"
-            }
-        )
-        if res.text:
-            response_text = res.text.strip()
-            break
-    except Exception as e:
-        print(f"Attempt {attempt + 1} failed with error: {e}")
-        time.sleep(5)
+for model in models_to_try:
+    print(f"Trying model: {model}")
+    for attempt in range(3):
+        try:
+            res = client.models.generate_content(
+                model=model,
+                contents=prompt,
+                config={
+                    "response_mime_type": "application/json"
+                }
+            )
+            if res.text:
+                response_text = res.text.strip()
+                break
+        except Exception as e:
+            wait_time = (attempt + 1) * 10
+            print(f"Attempt {attempt + 1} for {model} failed: {e}. Retrying in {wait_time}s...")
+            time.sleep(wait_time)
+            
+    if response_text:
+        break
 
 if not response_text:
-    raise Exception("Failed to generate content from Gemini API.")
+    raise Exception("Failed to generate content from all Gemini models due to high demand.")
 
 if response_text.startswith("```"):
     lines = response_text.splitlines()
@@ -166,7 +174,7 @@ hti = Html2Image(custom_flags=['--no-sandbox', '--disable-gpu'])
 hti.output_path = '.'
 hti.screenshot(html_str=full_html, save_as='card.png', size=(810, 1400))
 
-# --- שליחה תקינה לטלגרם ---
+# --- שליחה לטלגרם ---
 url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_TOKEN}/sendPhoto"
 with open("card.png", "rb") as img_file:
     res = requests.post(url, data={"chat_id": CHAT_ID}, files={"photo": img_file})
