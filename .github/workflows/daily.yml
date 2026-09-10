@@ -8,17 +8,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: python:3.11-slim
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
       - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y chromium-browser
-          pip install google-genai requests html2image
+        run: pip install google-genai requests
       - name: Run script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
