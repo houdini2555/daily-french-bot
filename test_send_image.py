@@ -56,7 +56,9 @@ simple_html = """
 # Generate image
 print("Rendering HTML to image...")
 hti = Html2Image(custom_flags=['--no-sandbox', '--disable-gpu'])
-img_bytes = hti.screenshot(html_str=simple_html, size=(810, 600))[0]
+img_path = hti.screenshot(html_str=simple_html, size=(810, 600))[0]
+with open(img_path, 'rb') as f:
+    img_bytes = f.read()
 print(f"Image generated successfully ({len(img_bytes)} bytes)")
 
 # Send to Telegram
