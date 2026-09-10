@@ -186,13 +186,13 @@ full_html = f"""
 # רינדור לתמונה - שמור בזיכרון
 print("Rendering HTML to image...")
 hti = Html2Image(custom_flags=['--no-sandbox', '--disable-gpu'])
-img_bytes = hti.screenshot(html_str=full_html, size=(810, 1400))
+img_bytes = hti.screenshot(html_str=full_html, size=(810, 1400))[0]
 print(f"Image generated successfully ({len(img_bytes)} bytes)")
 
 # --- שליחה לטלגרם ---
 print("Sending image to Telegram...")
 url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
-files = {"photo": ("card.png", img_bytes, "image/png")}
+files = {"photo": ("card.png", BytesIO(img_bytes), "image/png")}
 res = requests.post(url, data={"chat_id": CHAT_ID}, files=files)
 print(f"Telegram response status: {res.status_code}")
 if res.status_code == 200:
