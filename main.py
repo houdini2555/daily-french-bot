@@ -2,6 +2,7 @@ import os
 import json
 import time
 import requests
+from io import BytesIO
 from google import genai
 from html2image import Html2Image
 
@@ -169,13 +170,13 @@ full_html = f"""
 </html>
 """
 
-# רינדור לתמונה
+# רינדור לתמונה - שמור בזיכרון
 hti = Html2Image(custom_flags=['--no-sandbox', '--disable-gpu'])
-hti.output_path = '.'
-hti.screenshot(html_str=full_html, save_as='card.png', size=(810, 1400))
+img_bytes = hti.screenshot(html_str=full_html, size=(810, 1400))
 
 # --- שליחה לטלגרם ---
 url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
-with open("card.png", "rb") as img_file:
-    res = requests.post(url, data={"chat_id": CHAT_ID}, files={"photo": img_file})
-    print(f"Telegram response status: {res.status_code}")
+files = {"photo": ("card.png", img_bytes, "image/png")}
+res = requests.post(url, data={"chat_id": CHAT_ID}, files=files)
+print(f"Telegram response status: {res.status_code}")
+print(f"Telegram response: {res.text}")
