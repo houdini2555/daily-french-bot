@@ -70,6 +70,19 @@ if response_text.startswith("```"):
 
 data = json.loads(response_text)
 
+# --- Log the generated content ---
+print("\n" + "="*60)
+print("🇫🇷 DAILY FRENCH VOCABULARY - C1 LEVEL")
+print("="*60)
+for idx, item in enumerate(data, 1):
+    print(f"\n[{idx}] {item['expression']}")
+    print(f"    IPA: {item['ipa']}")
+    print(f"    Example: {item['example']}")
+    print(f"    Translations:")
+    for lang, translation in item['translations'].items():
+        print(f"      - {lang}: {translation}")
+print("="*60 + "\n")
+
 # --- בניית HTML מעוצב ---
 cards_html = ""
 for item in data:
@@ -171,12 +184,18 @@ full_html = f"""
 """
 
 # רינדור לתמונה - שמור בזיכרון
+print("Rendering HTML to image...")
 hti = Html2Image(custom_flags=['--no-sandbox', '--disable-gpu'])
 img_bytes = hti.screenshot(html_str=full_html, size=(810, 1400))
+print(f"Image generated successfully ({len(img_bytes)} bytes)")
 
 # --- שליחה לטלגרם ---
+print("Sending image to Telegram...")
 url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendPhoto"
 files = {"photo": ("card.png", img_bytes, "image/png")}
 res = requests.post(url, data={"chat_id": CHAT_ID}, files=files)
 print(f"Telegram response status: {res.status_code}")
-print(f"Telegram response: {res.text}")
+if res.status_code == 200:
+    print("✅ Image sent successfully to Telegram!")
+else:
+    print(f"❌ Failed to send image: {res.text}")
