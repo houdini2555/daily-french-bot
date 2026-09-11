@@ -2,32 +2,21 @@ name: Daily French C1 Bot
 
 on:
   schedule:
-    - cron: '0 3 * * *'
+    - cron: '0 6 * * *'
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # 1. Allows pushing history.json updates back to the repo
     container:
       image: python:3.11-slim
     steps:
-      - uses: actions/checkout@v4 # 2. Upgraded to v4 to prevent Node deprecation warnings
-      
+      - uses: actions/checkout@v3
       - name: Install dependencies
         run: pip install google-genai requests
-        
       - name: Run script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py
-
-      - name: Commit and Push History Updates # 3. Saves history.json across daily runs
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add history.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update 60-day vocabulary history [skip ci]" && git push)
