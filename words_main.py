@@ -33,9 +33,8 @@ For each word, provide:
 - The word in French
 - Level (B2 or C1)
 - IPA transcription
-- English definition
 - An example sentence in French showing how to use the word
-- English translation of the example sentence
+- Translations of the word in 6 languages: ENG, ITA, HEB, SRP, POR, GER
 
 CRITICAL REQUIREMENT:
 Do NOT use any of the following previously sent words:
@@ -47,9 +46,15 @@ Return the answer strictly as a JSON list with this exact structure:
     "word": "French word",
     "level": "B2 or C1",
     "ipa": "IPA transcription",
-    "definition_eng": "English definition",
     "example": "French example sentence",
-    "example_translation_eng": "English translation of the example sentence"
+    "translations": {{
+      "ENG": "English translation",
+      "ITA": "Italian translation",
+      "HEB": "Hebrew translation",
+      "SRP": "Serbian translation",
+      "POR": "Portuguese translation",
+      "GER": "German translation"
+    }}
   }}
 ]
 """
@@ -91,15 +96,17 @@ if response_text.startswith("```"):
 
 data = json.loads(response_text)
 
-# --- 3. Format message in English for Telegram ---
+# --- 3. Format message for Telegram ---
 message = "📚 *DAILY FRENCH VOCABULARY (B2/C1)*\n\n"
 
 for idx, item in enumerate(data, 1):
     message += f"*{idx}. {item['word']}* [{item['level']}]\n"
     message += f"IPA: _{item['ipa']}_\n"
-    message += f"Meaning: {item['definition_eng']}\n"
-    message += f"Usage: _{item['example']}_\n"
-    message += f"Translation: {item['example_translation_eng']}\n\n"
+    message += f"Example: _{item['example']}_\n"
+    message += "Translations:\n"
+    for lang, translation in item['translations'].items():
+        message += f"  • {lang}: {translation}\n"
+    message += "\n"
 
 # --- 4. Send message to Telegram ---
 print("Sending vocabulary words to Telegram...")
