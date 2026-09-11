@@ -2,34 +2,57 @@ import os
 import json
 import time
 import requests
+from datetime import datetime, timedelta
 from google import genai
 
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
+HISTORY_FILE = "history.json"
 
 client = genai.Client(api_key=GEMINI_KEY)
 
-prompt = """
+# --- History Management (60 Days) ---
+cutoff_date = (datetime.now() - timedelta(days=60)).strftime("%Y-%m-%d")
+recent_history = {}
+
+if os.path.exists(HISTORY_FILE):
+    try:
+        with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+            full_history = json.load(f)
+            # Retain only entries within the last 60 days
+            recent_history = {
+                expr: date for expr, date in full_history.items() 
+                if date >= cutoff_date
+            }
+    except Exception as e:
+        print(f"Warning: Could not read history file: {e}")
+
+used_expressions = list(recent_history.keys())
+avoid_clause = ""
+if used_expressions:
+    avoid_clause = f"\nDo NOT use any of the following expressions previously sent in the last 60 days:\n" + json.dumps(used_expressions, ensure_ascii=False)
+
+prompt = f"""
 Create 5 French expressions at C1 level. Return the answer as JSON in the following exact structure:
 [
-  {
+  {{
     "expression": "the expression in French",
     "ipa": "IPA transcription",
     "example": "example sentence in French",
-    "translations": {
+    "translations": {{
       "ENG": "English",
       "ITA": "Italian",
       "HEB": "Hebrew",
       "SRP": "Serbian",
       "POR": "Portuguese",
       "GER": "German"
-    }
-  }
+    }}
+  }}
 ]
+{avoid_clause}
 """
 
-# List of model priorities: if the first is busy, move to the next
 models_to_try = ["gemini-3.6-flash", "gemini-2.5-flash", "gemini-2.5-pro"]
 response_text = None
 
@@ -68,6 +91,17 @@ if response_text.startswith("```"):
 
 data = json.loads(response_text)
 
+# --- Save New Expressions to History ---
+today_str = datetime.now().strftime("%Y-%m-%d")
+for item in data:
+    recent_history[item["expression"].strip().lower()] = today_str
+
+try:
+    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(recent_history, f, ensure_ascii=False, indent=2)
+except Exception as e:
+    print(f"Warning: Could not save updated history: {e}")
+
 # --- Log the generated content ---
 print("\n" + "="*60)
 print("🇫🇷 DAILY FRENCH VOCABULARY - C1 LEVEL")
@@ -94,7 +128,7 @@ for idx, item in enumerate(data, 1):
 
 # --- Send text message to Telegram ---
 print("Sending text message to Telegram...")
-url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_TOKEN}/sendMessage"
 payload = {
     "chat_id": CHAT_ID,
     "text": message,
