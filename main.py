@@ -7,23 +7,27 @@ from datetime import datetime, timedelta
 from google import genai
 from google.genai import types
 
-# --- Environment Variables & Token Cleanup ---
+# ---------------------------------------------------------------------------
+# 1. Environment Variables & Secret Sanitization
+# ---------------------------------------------------------------------------
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
 RAW_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
-# Extract ONLY the numeric ID and alphanumeric token string (e.g. 123456789:ABCdefGhIJK...)
-# This eliminates any Markdown tags, brackets, or leading/trailing prefixes
-token_match = re.search(r"(\d+:[A-Za-z0-9_-]+)", RAW_TOKEN)
+# Strictly extract the raw Bot API token (digits:hash format)
+# Strips out any accidental Markdown formatting or ambient brackets
+token_match = re.search(r"\d+:[A-Za-z0-9_-]+", RAW_TOKEN)
 if token_match:
-    TELEGRAM_TOKEN = token_match.group(1)
+    TELEGRAM_TOKEN = token_match.group(0)
 else:
-    TELEGRAM_TOKEN = RAW_TOKEN.replace("[", "").replace("]", "").replace("*", "").strip()
+    TELEGRAM_TOKEN = re.sub(r"[^\w:-]", "", RAW_TOKEN)
 
 HISTORY_FILE = "history.json"
 client = genai.Client(api_key=GEMINI_KEY)
 
-# --- History Management (60-Day Rolling Window) ---
+# ---------------------------------------------------------------------------
+# 2. History Management (60-Day Rolling Window)
+# ---------------------------------------------------------------------------
 cutoff_date = (datetime.now() - timedelta(days=60)).strftime("%Y-%m-%d")
 recent_history = {}
 
@@ -46,6 +50,9 @@ if used_expressions:
         + json.dumps(used_expressions, ensure_ascii=False)
     )
 
+# ---------------------------------------------------------------------------
+# 3. Prompt Construction
+# ---------------------------------------------------------------------------
 prompt = f"""
 Create 5 French expressions at C1 level. Return the answer as JSON in the following exact structure:
 [
@@ -66,6 +73,9 @@ Create 5 French expressions at C1 level. Return the answer as JSON in the follow
 {avoid_clause}
 """
 
+# ---------------------------------------------------------------------------
+# 4. Content Generation with Retries
+# ---------------------------------------------------------------------------
 MODEL_NAME = "gemini-3.6-flash"
 MAX_RETRIES = 5
 response_text = None
@@ -102,7 +112,9 @@ if response_text.startswith("```"):
 
 data = json.loads(response_text)
 
-# --- Save New Expressions to History ---
+# ---------------------------------------------------------------------------
+# 5. Save Updated History to Disk
+# ---------------------------------------------------------------------------
 today_str = datetime.now().strftime("%Y-%m-%d")
 for item in data:
     recent_history[item["expression"].strip().lower()] = today_str
@@ -110,10 +122,13 @@ for item in data:
 try:
     with open(HISTORY_FILE, "w", encoding="utf-8") as f:
         json.dump(recent_history, f, ensure_ascii=False, indent=2)
+    print("✅ history.json updated successfully.")
 except Exception as e:
     print(f"Warning: Could not save updated history: {e}")
 
-# --- Format Telegram Message ---
+# ---------------------------------------------------------------------------
+# 6. Format Telegram Message
+# ---------------------------------------------------------------------------
 message = "🇫🇷 *DAILY FRENCH VOCABULARY - C1 LEVEL*\n\n"
 for idx, item in enumerate(data, 1):
     message += f"*[{idx}] {item['expression']}*\n"
@@ -124,12 +139,11 @@ for idx, item in enumerate(data, 1):
         message += f"  • {lang}: {translation}\n"
     message += "\n"
 
-# --- Execute Telegram Delivery ---
+# ---------------------------------------------------------------------------
+# 7. Post to Telegram
+# ---------------------------------------------------------------------------
 print("Sending text message to Telegram...")
-telegram_url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_TOKEN}/sendMessage"
-
-# Debug print to verify URL format without printing the token
-print(f"Target URL prefix: {telegram_url[:28]}...")
+url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_TOKEN}/sendMessage"
 
 payload = {
     "chat_id": CHAT_ID,
@@ -137,9 +151,11 @@ payload = {
     "parse_mode": "Markdown"
 }
 
-res = requests.post(telegram_url, json=payload)
+res = requests.post(url, json=payload)
 print(f"Telegram response status: {res.status_code}")
+
 if res.status_code == 200:
     print("✅ Message sent successfully to Telegram!")
 else:
     print(f"❌ Failed to send message: {res.text}")
+    raise Exception(f"Telegram API request failed with status code {res.status_code}")
