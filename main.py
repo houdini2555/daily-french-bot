@@ -1,15 +1,26 @@
 import os
+import re
 import json
 import time
 import requests
 from datetime import datetime, timedelta
 from google import genai
+from google.genai import types
 
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
-CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
-HISTORY_FILE = "history.json"
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
+# Sanitize token in case full URL or extra characters were passed into environment secret
+if "telegram.org" in TELEGRAM_TOKEN:
+    match = re.search(r"bot([^/]+)", TELEGRAM_TOKEN)
+    if match:
+        TELEGRAM_TOKEN = match.group(1)
+
+# Clean out any leftover markdown formatting/asterisks from env vars
+TELEGRAM_TOKEN = re.sub(r"[^\w:-]", "", TELEGRAM_TOKEN)
+
+HISTORY_FILE = "history.json"
 client = genai.Client(api_key=GEMINI_KEY)
 
 # --- History Management (60 Days) ---
@@ -20,7 +31,6 @@ if os.path.exists(HISTORY_FILE):
     try:
         with open(HISTORY_FILE, "r", encoding="utf-8") as f:
             full_history = json.load(f)
-            # Retain only entries within the last 60 days
             recent_history = {
                 expr: date for expr, date in full_history.items() 
                 if date >= cutoff_date
@@ -53,7 +63,7 @@ Create 5 French expressions at C1 level. Return the answer as JSON in the follow
 {avoid_clause}
 """
 
-models_to_try = ["gemini-3.6-flash", "gemini-2.5-flash", "gemini-2.5-pro"]
+models_to_try = ["gemini-2.5-flash", "gemini-2.5-pro"]
 response_text = None
 
 for model in models_to_try:
@@ -63,9 +73,9 @@ for model in models_to_try:
             res = client.models.generate_content(
                 model=model,
                 contents=prompt,
-                config={
-                    "response_mime_type": "application/json"
-                }
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json"
+                )
             )
             if res.text:
                 response_text = res.text.strip()
@@ -102,20 +112,7 @@ try:
 except Exception as e:
     print(f"Warning: Could not save updated history: {e}")
 
-# --- Log the generated content ---
-print("\n" + "="*60)
-print("🇫🇷 DAILY FRENCH VOCABULARY - C1 LEVEL")
-print("="*60)
-for idx, item in enumerate(data, 1):
-    print(f"\n[{idx}] {item['expression']}")
-    print(f"    IPA: {item['ipa']}")
-    print(f"    Example: {item['example']}")
-    print(f"    Translations:")
-    for lang, translation in item['translations'].items():
-        print(f"      - {lang}: {translation}")
-print("="*60 + "\n")
-
-# --- Format message for Telegram (text only) ---
+# --- Format message for Telegram ---
 message = "🇫🇷 *DAILY FRENCH VOCABULARY - C1 LEVEL*\n\n"
 for idx, item in enumerate(data, 1):
     message += f"*[{idx}] {item['expression']}*\n"
