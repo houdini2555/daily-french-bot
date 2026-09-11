@@ -136,8 +136,8 @@ for idx, item in enumerate(data, 1):
 print("Sending text message to Telegram...")
 
 # Plain string without any markdown brackets or parentheses
-base_url = "https://api.telegram.org/bot"
-telegram_url = base_url + TELEGRAM_TOKEN + "/sendMessage"
+
+telegram_url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_TOKEN}/sendMessage"
 
 payload = {
     "chat_id": CHAT_ID,
