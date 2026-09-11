@@ -8,17 +8,19 @@ from google import genai
 from google.genai import types
 
 # ---------------------------------------------------------------------------
-# 1. Environment Variables & Secret Sanitization
+# 1. Environment Variables & Strict Secret Sanitization
 # ---------------------------------------------------------------------------
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
 RAW_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
-# Extract only the token hash (digits:alphanumeric) to strip any Markdown/HTML tags
+# Extract ONLY digits followed by a colon and alphanumeric characters (e.g. 123456789:AAFg...)
+# This strips out any 'https://', brackets, or markdown stored inside the GitHub secret
 token_match = re.search(r"\d+:[A-Za-z0-9_-]+", RAW_TOKEN)
 if token_match:
     TELEGRAM_TOKEN = token_match.group(0)
 else:
+    # Backup fallback: strip everything except alphanumeric, colons, underscores, and hyphens
     TELEGRAM_TOKEN = re.sub(r"[^\w:-]", "", RAW_TOKEN)
 
 HISTORY_FILE = "history.json"
@@ -112,7 +114,7 @@ if response_text.startswith("```"):
 data = json.loads(response_text)
 
 # ---------------------------------------------------------------------------
-# 5. Save Updated History to Disk (Executed BEFORE Telegram API Call)
+# 5. Save Updated History to Disk (Before Telegram Call)
 # ---------------------------------------------------------------------------
 today_str = datetime.now().strftime("%Y-%m-%d")
 for item in data:
@@ -143,9 +145,9 @@ for idx, item in enumerate(data, 1):
 # ---------------------------------------------------------------------------
 print("Sending text message to Telegram...")
 
-# Construct clean URL directly
-domain = "api.telegram.org"
-url = f"https://{domain}/bot{TELEGRAM_TOKEN}/sendMessage"
+# Build clean URL from sanitized token
+endpoint = f"bot{TELEGRAM_TOKEN}/sendMessage"
+url = f"[https://api.telegram.org/](https://api.telegram.org/){endpoint}"
 
 payload = {
     "chat_id": CHAT_ID,
