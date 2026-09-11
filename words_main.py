@@ -34,7 +34,7 @@ For each word, provide:
 - Level (B2 or C1)
 - IPA transcription
 - An example sentence in French showing how to use the word
-- Translations of the word in 6 languages: ENG, ITA, HEB, SRP, POR, GER
+- Translations for BOTH the word and the example sentence into all 6 languages: ENG, ITA, HEB, SRP, POR, GER.
 
 CRITICAL REQUIREMENT:
 Do NOT use any of the following previously sent words:
@@ -48,12 +48,12 @@ Return the answer strictly as a JSON list with this exact structure:
     "ipa": "IPA transcription",
     "example": "French example sentence",
     "translations": {{
-      "ENG": "English translation",
-      "ITA": "Italian translation",
-      "HEB": "Hebrew translation",
-      "SRP": "Serbian translation",
-      "POR": "Portuguese translation",
-      "GER": "German translation"
+      "ENG": "English translation of word (Example: 'English translation of sentence')",
+      "ITA": "Italian translation of word (Example: 'Italian translation of sentence')",
+      "HEB": "Hebrew translation of word (Example: 'Hebrew translation of sentence')",
+      "SRP": "Serbian translation of word (Example: 'Serbian translation of sentence')",
+      "POR": "Portuguese translation of word (Example: 'Portuguese translation of sentence')",
+      "GER": "German translation of word (Example: 'German translation of sentence')"
     }}
   }}
 ]
