@@ -2,7 +2,8 @@ name: Daily French C1 Bot
 
 on:
   schedule:
-    - cron: '0 6 * * *'
+    # 01:00 UTC = 03:00 שעון ישראל (חורף) / 04:00 (קיץ)
+    - cron: '0 3 * * *'
   workflow_dispatch:
 
 jobs:
@@ -12,13 +13,23 @@ jobs:
       image: python:3.11-slim
     steps:
       - uses: actions/checkout@v3
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install google-genai python-telegram-bot    
+
       - name: Run script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py
+
+      - name: Commit and push updated history
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add history.json
+          git commit -m "Update expression history [skip ci]" || echo "No changes to commit"
+          git push
