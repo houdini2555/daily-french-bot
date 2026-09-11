@@ -8,26 +8,26 @@ from google import genai
 from google.genai import types
 
 # ---------------------------------------------------------------------------
-# 1. Environment Variables & Strict Secret Sanitization
+# 1. Environment Variables & Token Cleaning
 # ---------------------------------------------------------------------------
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
 RAW_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
-# Extract ONLY digits followed by a colon and alphanumeric characters (e.g. 123456789:AAFg...)
-# This strips out any 'https://', brackets, or markdown stored inside the GitHub secret
+# Extract ONLY the standard Telegram token pattern (e.g. 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ)
+# Strips away any 'https://', '[', ']', or markdown artifacts
 token_match = re.search(r"\d+:[A-Za-z0-9_-]+", RAW_TOKEN)
 if token_match:
-    TELEGRAM_TOKEN = token_match.group(0)
+    CLEAN_TOKEN = token_match.group(0)
 else:
-    # Backup fallback: strip everything except alphanumeric, colons, underscores, and hyphens
-    TELEGRAM_TOKEN = re.sub(r"[^\w:-]", "", RAW_TOKEN)
+    # Fallback: purge any non-token characters
+    CLEAN_TOKEN = re.sub(r"[^\w:-]", "", RAW_TOKEN)
 
 HISTORY_FILE = "history.json"
 client = genai.Client(api_key=GEMINI_KEY)
 
 # ---------------------------------------------------------------------------
-# 2. History Management (60-Day Rolling Window)
+# 2. Read History (60-Day Window)
 # ---------------------------------------------------------------------------
 cutoff_date = (datetime.now() - timedelta(days=60)).strftime("%Y-%m-%d")
 recent_history = {}
@@ -52,7 +52,7 @@ if used_expressions:
     )
 
 # ---------------------------------------------------------------------------
-# 3. Prompt Construction
+# 3. Construct Prompt
 # ---------------------------------------------------------------------------
 prompt = f"""
 Create 5 French expressions at C1 level. Return the answer as JSON in the following exact structure:
@@ -114,7 +114,7 @@ if response_text.startswith("```"):
 data = json.loads(response_text)
 
 # ---------------------------------------------------------------------------
-# 5. Save Updated History to Disk (Before Telegram Call)
+# 5. Save History to Disk (Before Telegram Call)
 # ---------------------------------------------------------------------------
 today_str = datetime.now().strftime("%Y-%m-%d")
 for item in data:
@@ -145,9 +145,8 @@ for idx, item in enumerate(data, 1):
 # ---------------------------------------------------------------------------
 print("Sending text message to Telegram...")
 
-# Build clean URL from sanitized token
-endpoint = f"bot{TELEGRAM_TOKEN}/sendMessage"
-url = f"[https://api.telegram.org/](https://api.telegram.org/){endpoint}"
+# Build clean Telegram API URL
+telegram_url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){CLEAN_TOKEN}/sendMessage"
 
 payload = {
     "chat_id": CHAT_ID,
@@ -155,7 +154,7 @@ payload = {
     "parse_mode": "Markdown"
 }
 
-res = requests.post(url, json=payload)
+res = requests.post(telegram_url, json=payload)
 print(f"Telegram response status: {res.status_code}")
 
 if res.status_code == 200:
