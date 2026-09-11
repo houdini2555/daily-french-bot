@@ -14,8 +14,7 @@ GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
 RAW_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
-# Strictly extract the raw Bot API token (digits:hash format)
-# Strips out any accidental Markdown formatting or ambient brackets
+# Extract only the token hash (digits:alphanumeric) to strip any Markdown/HTML tags
 token_match = re.search(r"\d+:[A-Za-z0-9_-]+", RAW_TOKEN)
 if token_match:
     TELEGRAM_TOKEN = token_match.group(0)
@@ -113,7 +112,7 @@ if response_text.startswith("```"):
 data = json.loads(response_text)
 
 # ---------------------------------------------------------------------------
-# 5. Save Updated History to Disk
+# 5. Save Updated History to Disk (Executed BEFORE Telegram API Call)
 # ---------------------------------------------------------------------------
 today_str = datetime.now().strftime("%Y-%m-%d")
 for item in data:
@@ -143,7 +142,10 @@ for idx, item in enumerate(data, 1):
 # 7. Post to Telegram
 # ---------------------------------------------------------------------------
 print("Sending text message to Telegram...")
-url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_TOKEN}/sendMessage"
+
+# Construct clean URL directly
+domain = "api.telegram.org"
+url = f"https://{domain}/bot{TELEGRAM_TOKEN}/sendMessage"
 
 payload = {
     "chat_id": CHAT_ID,
