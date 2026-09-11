@@ -1,8 +1,9 @@
 import os
 import json
 import time
-import requests
+import asyncio  # Replaced requests with asyncio
 from google import genai
+from telegram import Bot  # Added Bot import
 
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
@@ -94,15 +95,15 @@ for idx, item in enumerate(data, 1):
 
 # --- Send text message to Telegram ---
 print("Sending text message to Telegram...")
-url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-payload = {
-    "chat_id": CHAT_ID,
-    "text": message,
-    "parse_mode": "Markdown"
-}
-res = requests.post(url, json=payload)
-print(f"Telegram response status: {res.status_code}")
-if res.status_code == 200:
-    print("✅ Message sent successfully to Telegram!")
-else:
-    print(f"❌ Failed to send message: {res.text}")
+
+bot = Bot(token=TELEGRAM_TOKEN)
+
+async def main():
+    await bot.send_message(
+        chat_id=CHAT_ID,
+        text=message,
+        parse_mode="Markdown"
+    )
+
+asyncio.run(main())
+print("✅ Message sent successfully to Telegram!")
