@@ -8,16 +8,15 @@ from google import genai
 from google.genai import types
 
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+TELEGRAM_TOKEN_RAW = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
-# Sanitize token in case a full URL or extra characters were passed into the env secret
-if "telegram.org" in TELEGRAM_TOKEN:
-    match = re.search(r"bot([^/]+)", TELEGRAM_TOKEN)
-    if match:
-        TELEGRAM_TOKEN = match.group(1)
-
-TELEGRAM_TOKEN = re.sub(r"[^\w:-]", "", TELEGRAM_TOKEN)
+# Strictly extract token pattern (digits:alphanumeric_and_underscores) to sanitize malformed inputs
+token_match = re.search(r"(\d+:[A-Za-z0-9_-]+)", TELEGRAM_TOKEN_RAW)
+if token_match:
+    TELEGRAM_TOKEN = token_match.group(1)
+else:
+    TELEGRAM_TOKEN = re.sub(r"[^\w:-]", "", TELEGRAM_TOKEN_RAW)
 
 HISTORY_FILE = "history.json"
 client = genai.Client(api_key=GEMINI_KEY)
