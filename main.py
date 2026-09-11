@@ -11,13 +11,12 @@ GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
-# Sanitize token in case full URL or extra characters were passed into environment secret
+# Sanitize token in case a full URL or extra characters were passed into the env secret
 if "telegram.org" in TELEGRAM_TOKEN:
     match = re.search(r"bot([^/]+)", TELEGRAM_TOKEN)
     if match:
         TELEGRAM_TOKEN = match.group(1)
 
-# Clean out any leftover markdown formatting/asterisks from env vars
 TELEGRAM_TOKEN = re.sub(r"[^\w:-]", "", TELEGRAM_TOKEN)
 
 HISTORY_FILE = "history.json"
@@ -63,33 +62,31 @@ Create 5 French expressions at C1 level. Return the answer as JSON in the follow
 {avoid_clause}
 """
 
-models_to_try = ["gemini-2.5-flash", "gemini-2.5-pro"]
+MODEL_NAME = "gemini-3.6-flash"
+MAX_RETRIES = 5
 response_text = None
 
-for model in models_to_try:
-    print(f"Trying model: {model}")
-    for attempt in range(3):
-        try:
-            res = client.models.generate_content(
-                model=model,
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json"
-                )
+print(f"Targeting model: {MODEL_NAME}")
+for attempt in range(1, MAX_RETRIES + 1):
+    try:
+        res = client.models.generate_content(
+            model=MODEL_NAME,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json"
             )
-            if res.text:
-                response_text = res.text.strip()
-                break
-        except Exception as e:
-            wait_time = (attempt + 1) * 10
-            print(f"Attempt {attempt + 1} for {model} failed: {e}. Retrying in {wait_time}s...")
-            time.sleep(wait_time)
-            
-    if response_text:
-        break
+        )
+        if res.text:
+            response_text = res.text.strip()
+            print(f"✅ Success on attempt {attempt}")
+            break
+    except Exception as e:
+        wait_time = attempt * 10
+        print(f"Attempt {attempt}/{MAX_RETRIES} failed: {e}. Retrying in {wait_time}s...")
+        time.sleep(wait_time)
 
 if not response_text:
-    raise Exception("Failed to generate content from all Gemini models due to high demand.")
+    raise Exception(f"Failed to generate content from {MODEL_NAME} after {MAX_RETRIES} attempts.")
 
 if response_text.startswith("```"):
     lines = response_text.splitlines()
@@ -111,6 +108,19 @@ try:
         json.dump(recent_history, f, ensure_ascii=False, indent=2)
 except Exception as e:
     print(f"Warning: Could not save updated history: {e}")
+
+# --- Log the generated content ---
+print("\n" + "="*60)
+print("🇫🇷 DAILY FRENCH VOCABULARY - C1 LEVEL")
+print("="*60)
+for idx, item in enumerate(data, 1):
+    print(f"\n[{idx}] {item['expression']}")
+    print(f"    IPA: {item['ipa']}")
+    print(f"    Example: {item['example']}")
+    print(f"    Translations:")
+    for lang, translation in item['translations'].items():
+        print(f"      - {lang}: {translation}")
+print("="*60 + "\n")
 
 # --- Format message for Telegram ---
 message = "🇫🇷 *DAILY FRENCH VOCABULARY - C1 LEVEL*\n\n"
