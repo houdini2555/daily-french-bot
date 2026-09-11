@@ -1,5 +1,4 @@
 import os
-import re
 import json
 import time
 import requests
@@ -8,26 +7,17 @@ from google import genai
 from google.genai import types
 
 # ---------------------------------------------------------------------------
-# 1. Environment Variables & Token Cleaning
+# 1. Environment Variables
 # ---------------------------------------------------------------------------
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
-RAW_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
 CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
-
-# Extract ONLY the standard Telegram token pattern (e.g. 123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ)
-# Strips away any 'https://', '[', ']', or markdown artifacts
-token_match = re.search(r"\d+:[A-Za-z0-9_-]+", RAW_TOKEN)
-if token_match:
-    CLEAN_TOKEN = token_match.group(0)
-else:
-    # Fallback: purge any non-token characters
-    CLEAN_TOKEN = re.sub(r"[^\w:-]", "", RAW_TOKEN)
 
 HISTORY_FILE = "history.json"
 client = genai.Client(api_key=GEMINI_KEY)
 
 # ---------------------------------------------------------------------------
-# 2. Read History (60-Day Window)
+# 2. History Management (60-Day Rolling Window)
 # ---------------------------------------------------------------------------
 cutoff_date = (datetime.now() - timedelta(days=60)).strftime("%Y-%m-%d")
 recent_history = {}
@@ -52,7 +42,7 @@ if used_expressions:
     )
 
 # ---------------------------------------------------------------------------
-# 3. Construct Prompt
+# 3. Prompt Construction
 # ---------------------------------------------------------------------------
 prompt = f"""
 Create 5 French expressions at C1 level. Return the answer as JSON in the following exact structure:
@@ -77,7 +67,7 @@ Create 5 French expressions at C1 level. Return the answer as JSON in the follow
 # ---------------------------------------------------------------------------
 # 4. Content Generation with Retries
 # ---------------------------------------------------------------------------
-MODEL_NAME = "gemini-3.6-flash"
+MODEL_NAME = "gemini-2.5-flash"
 MAX_RETRIES = 5
 response_text = None
 
@@ -114,7 +104,7 @@ if response_text.startswith("```"):
 data = json.loads(response_text)
 
 # ---------------------------------------------------------------------------
-# 5. Save History to Disk (Before Telegram Call)
+# 5. Save History to Disk
 # ---------------------------------------------------------------------------
 today_str = datetime.now().strftime("%Y-%m-%d")
 for item in data:
@@ -145,8 +135,8 @@ for idx, item in enumerate(data, 1):
 # ---------------------------------------------------------------------------
 print("Sending text message to Telegram...")
 
-# Build clean Telegram API URL
-telegram_url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){CLEAN_TOKEN}/sendMessage"
+# Plain string without any markdown brackets or parentheses
+telegram_url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_TOKEN}/sendMessage"
 
 payload = {
     "chat_id": CHAT_ID,
@@ -161,4 +151,4 @@ if res.status_code == 200:
     print("✅ Message sent successfully to Telegram!")
 else:
     print(f"❌ Failed to send message: {res.text}")
-    raise Exception(f"Telegram API request failed with status code {res.status_code}")
+    res.raise_for_status()
