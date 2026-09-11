@@ -2,7 +2,6 @@ name: Daily French Words Bot
 
 on:
   schedule:
-    # 13:00 UTC = 15:00 שעון ישראל (חורף)
     - cron: '0 13 * * *'
   workflow_dispatch:
 
@@ -14,11 +13,19 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      # 1. התקנת Git בתוך ה-Container הרזה
+      - name: Install Git
+        run: |
+          apt-get update
+          apt-get install -y git
+
+      # 2. התקנת ספריית פייתון
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install google-genai python-telegram-bot
 
+      # 3. הרצת הסקריפט
       - name: Run words script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -26,6 +33,7 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python words_main.py
 
+      # 4. שמירה ועדכון ה-History
       - name: Commit and push updated history
         run: |
           git config --global user.name "github-actions[bot]"
