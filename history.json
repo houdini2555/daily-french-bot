@@ -318,5 +318,25 @@
   {
     "expression": "S'acheter une conduite",
     "date": "2026-10-04"
+  },
+  {
+    "expression": "Mettre de la poudre aux yeux",
+    "date": "2026-10-05"
+  },
+  {
+    "expression": "Faire long feu",
+    "date": "2026-10-05"
+  },
+  {
+    "expression": "Apporter sa pierre à l'édifice",
+    "date": "2026-10-05"
+  },
+  {
+    "expression": "Prendre de la bouteille",
+    "date": "2026-10-05"
+  },
+  {
+    "expression": "Entrer dans le vif du sujet",
+    "date": "2026-10-05"
   }
 ]
