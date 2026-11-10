@@ -818,5 +818,25 @@
   {
     "expression": "Rester sur le carreau",
     "date": "2026-11-08"
+  },
+  {
+    "expression": "Marcher sur les brisées de quelqu'un",
+    "date": "2026-11-10"
+  },
+  {
+    "expression": "Faire les frais de quelque chose",
+    "date": "2026-11-10"
+  },
+  {
+    "expression": "Passer sous silence",
+    "date": "2026-11-10"
+  },
+  {
+    "expression": "Se tenir à carreau",
+    "date": "2026-11-10"
+  },
+  {
+    "expression": "Tenir quelqu'un en échec",
+    "date": "2026-11-10"
   }
 ]
