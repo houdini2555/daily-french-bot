@@ -1,25 +1,5 @@
 [
   {
-    "expression": "Jeter le manche après la cognée",
-    "date": "2026-09-13"
-  },
-  {
-    "expression": "Tirer les marrons du feu",
-    "date": "2026-09-13"
-  },
-  {
-    "expression": "Battre froid à quelqu'un",
-    "date": "2026-09-13"
-  },
-  {
-    "expression": "Dorer la pilule",
-    "date": "2026-09-13"
-  },
-  {
-    "expression": "Payer en monnaie de singe",
-    "date": "2026-09-13"
-  },
-  {
     "expression": "Tenir le haut du pavé",
     "date": "2026-09-14"
   },
@@ -838,5 +818,25 @@
   {
     "expression": "S'inscrire dans le droit fil de",
     "date": "2026-11-12"
+  },
+  {
+    "expression": "Défrayer la chronique",
+    "date": "2026-11-13"
+  },
+  {
+    "expression": "Tirer les marrons du feu",
+    "date": "2026-11-13"
+  },
+  {
+    "expression": "Dorer la pilule",
+    "date": "2026-11-13"
+  },
+  {
+    "expression": "Faire la part des choses",
+    "date": "2026-11-13"
+  },
+  {
+    "expression": "Remettre les pendules à l'heure",
+    "date": "2026-11-13"
   }
 ]
