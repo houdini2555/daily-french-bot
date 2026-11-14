@@ -1,25 +1,5 @@
 [
   {
-    "expression": "Tenir le haut du pavé",
-    "date": "2026-09-14"
-  },
-  {
-    "expression": "Découvrir le pot aux roses",
-    "date": "2026-09-14"
-  },
-  {
-    "expression": "Donner le bon Dieu sans confession",
-    "date": "2026-09-14"
-  },
-  {
-    "expression": "Brûler les étapes",
-    "date": "2026-09-14"
-  },
-  {
-    "expression": "Renvoyer l'ascenseur",
-    "date": "2026-09-14"
-  },
-  {
     "expression": "Changer son fusil d'épaule",
     "date": "2026-09-15"
   },
@@ -838,5 +818,25 @@
   {
     "expression": "Remettre les pendules à l'heure",
     "date": "2026-11-13"
+  },
+  {
+    "expression": "Battre froid à quelqu'un",
+    "date": "2026-11-14"
+  },
+  {
+    "expression": "Faire la fine bouche",
+    "date": "2026-11-14"
+  },
+  {
+    "expression": "Chercher midi à quatorze heures",
+    "date": "2026-11-14"
+  },
+  {
+    "expression": "Payer en monnaie de singe",
+    "date": "2026-11-14"
+  },
+  {
+    "expression": "Se piquer de quelque chose",
+    "date": "2026-11-14"
   }
 ]
