@@ -1,25 +1,5 @@
 [
   {
-    "expression": "Changer son fusil d'épaule",
-    "date": "2026-09-15"
-  },
-  {
-    "expression": "Faire chou blanc",
-    "date": "2026-09-15"
-  },
-  {
-    "expression": "Prêcher le faux pour savoir le vrai",
-    "date": "2026-09-15"
-  },
-  {
-    "expression": "Faire amende honorable",
-    "date": "2026-09-15"
-  },
-  {
-    "expression": "Avoir le compas dans l'œil",
-    "date": "2026-09-15"
-  },
-  {
     "expression": "Avoir pignon sur rue",
     "date": "2026-09-16"
   },
@@ -838,5 +818,25 @@
   {
     "expression": "Se piquer de quelque chose",
     "date": "2026-11-14"
+  },
+  {
+    "expression": "Essuyer les plâtres",
+    "date": "2026-11-15"
+  },
+  {
+    "expression": "Jeter l'opprobre sur",
+    "date": "2026-11-15"
+  },
+  {
+    "expression": "Tirer les ficelles",
+    "date": "2026-11-15"
+  },
+  {
+    "expression": "Prendre le pouls de",
+    "date": "2026-11-15"
+  },
+  {
+    "expression": "Mettre au rencart",
+    "date": "2026-11-15"
   }
 ]
