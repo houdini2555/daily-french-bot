@@ -1,25 +1,5 @@
 [
   {
-    "expression": "Noyer le poisson",
-    "date": "2026-09-17"
-  },
-  {
-    "expression": "Courir deux lièvres à la fois",
-    "date": "2026-09-17"
-  },
-  {
-    "expression": "Renvoyer aux calendes grecques",
-    "date": "2026-09-17"
-  },
-  {
-    "expression": "Faire table rase",
-    "date": "2026-09-17"
-  },
-  {
-    "expression": "Se regarder en chiens de faïence",
-    "date": "2026-09-17"
-  },
-  {
     "expression": "Prêter le flanc à la critique",
     "date": "2026-09-18"
   },
@@ -838,5 +818,25 @@
   {
     "expression": "Savoir de quel bois quelqu'un se chauffe",
     "date": "2026-11-16"
+  },
+  {
+    "expression": "Se regarder en chiens de faïence",
+    "date": "2026-11-17"
+  },
+  {
+    "expression": "Réduire à la portion congrue",
+    "date": "2026-11-17"
+  },
+  {
+    "expression": "Tenir le haut du pavé",
+    "date": "2026-11-17"
+  },
+  {
+    "expression": "Jeter le manche après la cognée",
+    "date": "2026-11-17"
+  },
+  {
+    "expression": "Renvoyer aux calendes grecques",
+    "date": "2026-11-17"
   }
 ]
