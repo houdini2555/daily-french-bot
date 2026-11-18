@@ -42,10 +42,10 @@ Return the answer as JSON in the following exact structure:
     "ipa": "IPA transcription",
     "example": "example sentence in French",
     "translations": {{
-      "ENG": "English",
-      "ITA": "Italian",
-      "HEB": "Hebrew",
-      "GER": "German"
+      "ENG": "English translation of expression (Example: 'English translation of sentence')",
+      "ITA": "Italian translation of expression (Example: 'Italian translation of sentence')",
+      "HEB": "Hebrew translation of expression (Example: 'Hebrew translation of sentence')",
+      "GER": "German translation of expression (Example: 'German translation of sentence')"
     }}
   }}
 ]
