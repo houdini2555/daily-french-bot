@@ -51,8 +51,6 @@ Return the answer strictly as a JSON list with this exact structure:
       "ENG": "English translation of word (Example: 'English translation of sentence')",
       "ITA": "Italian translation of word (Example: 'Italian translation of sentence')",
       "HEB": "Hebrew translation of word (Example: 'Hebrew translation of sentence')",
-      "SRP": "Serbian translation of word (Example: 'Serbian translation of sentence')",
-      "POR": "Portuguese translation of word (Example: 'Portuguese translation of sentence')",
       "GER": "German translation of word (Example: 'German translation of sentence')"
     }}
   }}
