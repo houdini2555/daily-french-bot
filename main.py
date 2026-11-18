@@ -45,8 +45,6 @@ Return the answer as JSON in the following exact structure:
       "ENG": "English",
       "ITA": "Italian",
       "HEB": "Hebrew",
-      "SRP": "Serbian",
-      "POR": "Portuguese",
       "GER": "German"
     }}
   }}
@@ -54,7 +52,7 @@ Return the answer as JSON in the following exact structure:
 """
 
 client = genai.Client(api_key=GEMINI_KEY)
-models_to_try = ["gemini-3.6-flash", "gemini-2.5-flash", "gemini-2.5-pro"]
+models_to_try = ["gemini-3.8-flash", "gemini-3.6-flash"]
 response_text = None
 
 for model in models_to_try:
