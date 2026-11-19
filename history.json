@@ -1,25 +1,5 @@
 [
   {
-    "expression": "Tenir la dragée haute",
-    "date": "2026-09-19"
-  },
-  {
-    "expression": "Prendre le mors aux dents",
-    "date": "2026-09-19"
-  },
-  {
-    "expression": "Trancher le nœud gordien",
-    "date": "2026-09-19"
-  },
-  {
-    "expression": "Avoir des atomes crochus",
-    "date": "2026-09-19"
-  },
-  {
-    "expression": "Battre de l'aile",
-    "date": "2026-09-19"
-  },
-  {
     "expression": "Se faire l'avocat du diable",
     "date": "2026-09-20"
   },
@@ -838,5 +818,25 @@
   {
     "expression": "Tailler un costume à quelqu'un",
     "date": "2026-11-18"
+  },
+  {
+    "expression": "Vouer aux gémonies",
+    "date": "2026-11-19"
+  },
+  {
+    "expression": "Crier haro sur",
+    "date": "2026-11-19"
+  },
+  {
+    "expression": "Aller à Canossa",
+    "date": "2026-11-19"
+  },
+  {
+    "expression": "Faire table rase",
+    "date": "2026-11-19"
+  },
+  {
+    "expression": "Donner des verges pour se faire fouetter",
+    "date": "2026-11-19"
   }
 ]
