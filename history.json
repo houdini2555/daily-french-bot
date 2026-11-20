@@ -1,25 +1,5 @@
 [
   {
-    "expression": "Se faire l'avocat du diable",
-    "date": "2026-09-20"
-  },
-  {
-    "expression": "Prendre des gants",
-    "date": "2026-09-20"
-  },
-  {
-    "expression": "Prendre le taureau par les cornes",
-    "date": "2026-09-20"
-  },
-  {
-    "expression": "Tirer la sonnette d'alarme",
-    "date": "2026-09-20"
-  },
-  {
-    "expression": "Tourner autour du pot",
-    "date": "2026-09-20"
-  },
-  {
     "expression": "Bayer aux corneilles",
     "date": "2026-09-27"
   },
@@ -838,5 +818,25 @@
   {
     "expression": "Donner des verges pour se faire fouetter",
     "date": "2026-11-19"
+  },
+  {
+    "expression": "Tenir la dragée haute à quelqu'un",
+    "date": "2026-11-20"
+  },
+  {
+    "expression": "Balayer d'un revers de main",
+    "date": "2026-11-20"
+  },
+  {
+    "expression": "Courir plusieurs lièvres à la fois",
+    "date": "2026-11-20"
+  },
+  {
+    "expression": "Donner du fil à retordre à quelqu'un",
+    "date": "2026-11-20"
+  },
+  {
+    "expression": "Être sur le qui-vive",
+    "date": "2026-11-20"
   }
 ]
