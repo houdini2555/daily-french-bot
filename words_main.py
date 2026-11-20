@@ -28,10 +28,10 @@ used_words = [item["word"] for item in recent_history]
 
 # --- 2. Prompt for Gemini ---
 prompt = f"""
-Generate 5 French vocabulary words at B2 or C1 level.
+Generate 5 French vocabulary words at B1 or C2 level.
 For each word, provide:
 - The word in French
-- Level (B2 or C1)
+- Level (B2 or B1)
 - IPA transcription
 - An example sentence in French showing how to use the word
 - Translations for BOTH the word and the example sentence into all 6 languages: ENG, ITA, HEB, SRP, POR, GER.
@@ -44,7 +44,7 @@ Return the answer strictly as a JSON list with this exact structure:
 [
   {{
     "word": "French word",
-    "level": "B2 or C1",
+    "level": "B2 or B1",
     "ipa": "IPA transcription",
     "example": "French example sentence",
     "translations": {{
