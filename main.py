@@ -29,7 +29,7 @@ used_expressions = [item["expression"] for item in recent_history]
 
 # --- 2. עדכון הפרומפט ל-Gemini ---
 prompt = f"""
-Create 5 French expressions at C1 level.
+Create 5 French expressions at B1 or B2 level.
 
 CRITICAL REQUIREMENT:
 Do NOT use any of the following expressions:
@@ -89,7 +89,7 @@ if response_text.startswith("```"):
 data = json.loads(response_text)
 
 # --- 3. עיצוב ושליחה ל-Telegram ---
-message = "🇫🇷 *DAILY FRENCH VOCABULARY - C1 LEVEL*\n\n"
+message = "🇫🇷 *DAILY FRENCH VOCABULARY - B1 B2 LEVEL*\n\n"
 for idx, item in enumerate(data, 1):
     message += f"*[{idx}] {item['expression']}*\n"
     message += f"_IPA: {item['ipa']}_\n"
