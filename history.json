@@ -1,25 +1,5 @@
 [
   {
-    "expression": "Bayer aux corneilles",
-    "date": "2026-09-27"
-  },
-  {
-    "expression": "Tomber de Charybde en Scylla",
-    "date": "2026-09-27"
-  },
-  {
-    "expression": "Prendre des vessies pour des lanternes",
-    "date": "2026-09-27"
-  },
-  {
-    "expression": "Ranger aux oubliettes",
-    "date": "2026-09-27"
-  },
-  {
-    "expression": "Se draper dans sa dignité",
-    "date": "2026-09-27"
-  },
-  {
     "expression": "Avoir les coudées franches",
     "date": "2026-09-29"
   },
@@ -938,5 +918,25 @@
   {
     "expression": "Avoir les yeux plus gros que le ventre",
     "date": "2026-11-25"
+  },
+  {
+    "expression": "Prendre son mal en patience",
+    "date": "2026-11-27"
+  },
+  {
+    "expression": "Avoir l'estomac dans les talons",
+    "date": "2026-11-27"
+  },
+  {
+    "expression": "Perdre le fil",
+    "date": "2026-11-27"
+  },
+  {
+    "expression": "Prendre les devants",
+    "date": "2026-11-27"
+  },
+  {
+    "expression": "Toucher du bois",
+    "date": "2026-11-27"
   }
 ]
